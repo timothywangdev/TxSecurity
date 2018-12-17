@@ -1,0 +1,43 @@
+{
+  "name": "txsecurity",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/timothywangdev/TxSecurity.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/timothywangdev/TxSecurity/issues"
+  },
+  "dependencies": {
+    "moment": "^2.22.1",
+    "web3": "^1.0.0-beta.34"
+  },
+  "devDependencies": {
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "bignumber.js": "^7.2.1",
+    "bs58": "^4.0.1",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^2.0.2",
+    "chai-string": "^1.4.0",
+    "eth-gas-reporter": "^0.1.5",
+    "openzeppelin-solidity": "1.10.0",
+    "solidity-coverage": "^0.5.1",
+    "truffle-hdwallet-provider": "0.0.4"
+  },
+  "homepage": "https://github.com/timothywangdev/TxSecurity#readme"
+}
