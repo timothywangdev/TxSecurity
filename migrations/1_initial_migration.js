@@ -1,5 +1,5 @@
-var Migrations = artifacts.require("./Migrations.sol");
+var TxSecurity = artifacts.require("./TxSecurity.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(Migrations);
+  deployer.deploy(TxSecurity);
 };

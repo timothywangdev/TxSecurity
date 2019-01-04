@@ -1,78 +1,77 @@
 pragma solidity ^0.4.24;
 
 contract TxSecurity {
-    struct Transfer {
-        address from;
-        address to;
-        uint val;
-        bytes32 secret;
-        uint timestamp;
-        uint8 status; // 0: init 1: received 2: cancelled
+    struct Alias {
+        string addr; // address of a cryptocurrency
+        bytes32 cryptoType; // type of the cryptocurrency
+        bytes32 pin; // for transfer verification
     }
 
-    Transfer[] transfers;
-
-    // addres => tx list
-    mapping(address => uint[]) userTransfers;
-
-    function send(address to, bytes32 secret) external payable {
-        /* require(to != address(0x0), "Invalid receiver"); */
-        /* require(msg.value > 0, "Value too low"); */
-
-        /* transfers.push(Transfer(msg.sender, to, msg.value, secret, block.timestamp, 0)); */
-        /* userTransfers[msg.sender].push(transfers.length - 1); */
-        /* userTransfers[to].push(transfers.length - 1); */
+    struct Domain {
+        address owner;
+        bytes32[] alias;
+        mapping(bytes32 => Alias) aliasData;
     }
 
-    function receive(uint id, string pwd) external {
-        require(id < transfers.length, "Invalid ID");
-        require(msg.sender == transfers[id].to, "Invalid receiver");
-        require(transfers[id].val != 0, "Value must be non-zero");
-        require(keccak256(bytes(pwd)) == transfers[id].secret, "Invalid password");
+    // domain hash => [Domain]
+    mapping(bytes32 => Domain) public domains;
 
-        uint _val = transfers[id].val;
-        transfers[id].val = 0;
-        msg.sender.transfer(_val);
-        transfers[id].status = 1;
+    function registerDomain(bytes32 domain) external {
+        // domain must be available
+        require(domains[domain].owner == address(0x0));
+        domains[domain].owner = msg.sender;
     }
 
-    function cancel(uint id) external {
-        require(id < transfers.length, "Invalid ID");
-        require(msg.sender == transfers[id].from, "Invalid sender");
-        require(transfers[id].val != 0, "Value must be non-zero");
-
-        uint _val = transfers[id].val;
-        transfers[id].val = 0;
-        msg.sender.transfer(_val);
-        transfers[id].status = 2;
+    function removeDomain(bytes32 domain) external {
+        // must be owner
+        require(domains[domain].owner == msg.sender);
+        delete domains[domain].alias;
+        delete domains[domain].owner;
     }
 
-    function getTransferListLen() external view returns (uint) {
-        return transfers.length;
+    function removeAlias(bytes32 domain, bytes32 alias) internal {
+        Domain storage d = domains[domain];
+        uint idx = d.alias.length;
+        for(uint i = 0; i < d.alias.length; i++) {
+            if (alias == d.alias[i]) {
+                idx = i;
+                break;
+            }
+        }
+        if (idx < d.alias.length) {
+            d.alias[idx] = d.alias[d.alias.length - 1];
+            d.alias.length--;
+        }
     }
 
-    function getUserTransferListLen(address user) external view returns (uint) {
-        return userTransfers[user].length;
+    function addAlias(bytes32 domain, bytes32 alias, string addr, bytes32 cryptoType, bytes32 pin) public {
+        Domain storage d = domains[domain];
+
+        // must be owner
+        require(d.owner == msg.sender);
+
+        // remove an existing alias
+        if (bytes(addr).length == 0) {
+            removeAlias(domain, alias);
+        }
+
+        // add a new alias
+        if (bytes(addr).length != 0 && bytes(d.aliasData[alias].addr).length == 0) {
+            d.alias.push(alias);
+        }
+
+        // overwrite existing alias data
+        d.aliasData[alias].addr = addr;
+        d.aliasData[alias].cryptoType = cryptoType;
+        d.aliasData[alias].pin = pin;
     }
 
-    /* function getTransferList(address user, uint startId) */
-    /*     external */
-    /*     view */
-    /*     returns */
-    /*     (bytes32[] data) { */
+    function getAliasData(bytes32 domain, bytes32 alias) external returns (string, bytes32, bytes32) {
+        Domain storage d = domains[domain];
+        return (d.aliasData[alias].addr, d.aliasData[alias].cryptoType, d.aliasData[alias].pin);
+    }
 
-    /*     // batch of ten */
-    /*     bytes32[] memory _data = new bytes32[](50); */
-
-    /*     for(int i = (int)(startId); i >= 0 && i >= (int)(startId) - 10; i--) { */
-    /*         int j = (int)(startId) - i; */
-    /*         Transfer storage t = transfers[userTransfers[user][(uint)(i)]]; */
-    /*         _data[(uint)(j * 5)] = bytes32(t.from); */
-    /*         _data[(uint)(j * 5 + 1)] = bytes32(t.val); */
-    /*         _data[(uint)(j * 5 + 2)] = bytes32(t.secret); */
-    /*         _data[(uint)(j * 5 + 3)] = bytes32(t.timestamp); */
-    /*         _data[(uint)(j * 5 + 4)] = bytes32(t.status); */
-    /*     } */
-    /*     return (_data); */
-    /* } */
+    function getDomain(bytes32 domain) external returns (address, bytes32[]) {
+        return (domains[domain].owner, domains[domain].alias);
+    }
 }
